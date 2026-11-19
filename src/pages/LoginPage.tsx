@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Lock,
   User as UserIcon,
@@ -11,6 +11,9 @@ import {
   ChefHat,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { getTenantSlug } from '../services/apiClient';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
 
 export const LoginPage: React.FC = () => {
   const { login, outlets, currentTenant } = useApp();
@@ -19,6 +22,28 @@ export const LoginPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const googleError = params.get('google_error');
+    if (googleError) {
+      setErrorMessage(googleError);
+      params.delete('google_error');
+      const cleanUrl = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}`;
+      window.history.replaceState({}, '', cleanUrl);
+    }
+  }, []);
+
+  const handleGoogleRedirectLogin = () => {
+    setIsLoading(true);
+    const redirectOrigin = window.location.origin;
+    const tenantSlug = getTenantSlug() || 'testing';
+    const params = new URLSearchParams({
+      redirect_origin: redirectOrigin,
+      tenant_slug: tenantSlug,
+    });
+    window.location.href = `${API_BASE_URL}/auth/google/start?${params.toString()}`;
+  };
 
   const brandName = currentTenant?.name || 'Testing POS Sandbox';
   const brandSlug = currentTenant?.slug ? `${currentTenant.slug}.vimtk.cloud` : 'Testing POS Sandbox • testing.vimtk.cloud';
@@ -206,6 +231,21 @@ export const LoginPage: React.FC = () => {
                 </button>
               </div>
             </form>
+
+            {/* Google Social Login (Standar Login) */}
+            <div className="mt-4 pt-4 border-t border-border-subtle flex flex-col items-center gap-2">
+              <button
+                type="button"
+                disabled={isLoading}
+                onClick={handleGoogleRedirectLogin}
+                className="w-full py-2.5 px-4 rounded-xl bg-white hover:bg-surface-container border border-border-strong text-brand-espresso text-xs font-bold shadow-xs transition-all flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-50 min-h-[44px]"
+              >
+                <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+                  <path fill="#EA4335" d="M12 10.2v3.9h5.4c-.2 1.2-1.4 3.6-5.4 3.6-3.2 0-5.9-2.7-5.9-6s2.7-6 5.9-6c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.7 3.1 14.6 2.2 12 2.2 6.6 2.2 2.2 6.6 2.2 12s4.4 9.8 9.8 9.8c5.7 0 9.4-4 9.4-9.6 0-.6-.1-1.1-.2-1.6H12z" />
+                </svg>
+                <span>Masuk dengan Google</span>
+              </button>
+            </div>
           </div>
 
           {/* Security Notice Footer */}
