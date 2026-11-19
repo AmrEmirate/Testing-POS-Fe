@@ -9,22 +9,20 @@ import {
   AlertCircle,
   Shield,
   ChefHat,
-  RotateCcw,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { resetDemoState } from '../services/demoBackend';
 
 export const LoginPage: React.FC = () => {
   const { login, outlets, currentTenant } = useApp();
-  const [username, setUsername] = useState('owner');
-  const [password, setPassword] = useState('123');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const brandName = currentTenant?.name || 'Pro POS Enterprise';
+  const brandName = currentTenant?.name || 'Testing POS Sandbox';
   const brandSlug = currentTenant?.slug ? `${currentTenant.slug}.vimtk.cloud` : 'Testing POS Sandbox • testing.vimtk.cloud';
-  const brandColor = currentTenant?.themeColor || '#113A5D';
+  const brandColor = currentTenant?.themeColor || '#059669';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,14 +42,14 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-[#0D2B45] via-[#113A5D] to-[#1A4B76] p-4 sm:p-6 antialiased relative overflow-hidden">
+    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-[#0D1C2F] via-[#0F2D36] to-[#005236] p-4 sm:p-6 antialiased relative overflow-hidden">
       {/* Background Decorative Rings */}
-      <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-brand-gold/10 blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full bg-brand-terracotta/10 blur-3xl pointer-events-none" />
+      <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-brand-gold/15 blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full bg-brand-terracotta/15 blur-3xl pointer-events-none" />
 
       <div className="w-full max-w-md lg:max-w-4xl grid grid-cols-1 lg:grid-cols-12 rounded-3xl overflow-hidden shadow-2xl border border-white/10 bg-surface-card/95 backdrop-blur-xl z-10">
         {/* Left Side: Brand Heritage Banner (Desktop Only) */}
-        <div className="hidden lg:flex lg:col-span-5 bg-gradient-to-br from-[#0D2B45] via-[#113A5D] to-[#1E4E79] p-8 flex-col justify-between text-white relative">
+        <div className="hidden lg:flex lg:col-span-5 bg-gradient-to-br from-[#0D1C2F] via-[#0F2D36] to-[#006948] p-8 flex-col justify-between text-white relative">
           <div className="relative z-10">
             <div className="flex items-center gap-3 mb-6">
               <div
@@ -208,53 +206,12 @@ export const LoginPage: React.FC = () => {
                 </button>
               </div>
             </form>
-
-            {/* Akses Cepat Demo (1-Click Fill) */}
-            <div className="mt-4 pt-4 border-t border-border-subtle space-y-2.5">
-              <div className="flex items-center justify-between text-[11px] font-bold text-brand-espresso/80">
-                <span>Akses Cepat Demo (1-Click Fill)</span>
-                <span className="text-[10px] font-semibold text-secondary">PIN: 123456</span>
-              </div>
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  { label: 'Owner', user: 'owner', pass: '123', desc: 'Semua Fitur' },
-                  { label: 'Supervisor', user: 'supervisor', pass: '123', desc: 'Cabang & Stok' },
-                  { label: 'Kasir', user: 'kasir', pass: '123', desc: 'POS & Shift' },
-                ].map((acc) => (
-                  <button
-                    key={acc.user}
-                    type="button"
-                    onClick={() => {
-                      setUsername(acc.user);
-                      setPassword(acc.pass);
-                      setErrorMessage(null);
-                    }}
-                    className="px-2.5 py-2 rounded-xl bg-surface-container hover:bg-brand-gold-subtle border border-border-subtle hover:border-brand-gold text-left transition-all min-h-[44px] cursor-pointer"
-                  >
-                    <div className="text-xs font-bold text-brand-espresso">{acc.label}</div>
-                    <div className="text-[10px] text-secondary truncate">{acc.desc}</div>
-                  </button>
-                ))}
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  resetDemoState();
-                  setErrorMessage(null);
-                  window.location.reload();
-                }}
-                className="w-full py-2 px-3 rounded-xl bg-surface-container-low hover:bg-surface-container border border-border-subtle text-secondary hover:text-brand-espresso text-[11px] font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span>Reset Data Simulasi Demo</span>
-              </button>
-            </div>
           </div>
 
           {/* Security Notice Footer */}
           <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-border-subtle flex items-center justify-center gap-1.5 text-secondary text-[10px] sm:text-xs text-center">
             <Shield className="w-3.5 h-3.5 text-primary shrink-0" />
-            <span>{brandName} Cloud POS & Enterprise Accounting • Mode Sandbox Demo</span>
+            <span>{brandName} • Terhubung ke Shared Cloud POS Backend</span>
           </div>
         </div>
       </div>
