@@ -1,0 +1,179 @@
+import React from 'react';
+import { useApp } from './context/AppContext';
+import { Sidebar } from './components/layout/Sidebar';
+import { Header } from './components/layout/Header';
+import { NotificationToast } from './components/common/NotificationToast';
+
+import { LoginPage } from './pages/LoginPage';
+import { DashboardPage } from './pages/DashboardPage';
+import { PosPage } from './pages/PosPage';
+import { ShiftPage } from './pages/ShiftPage';
+import { MenuHppPage } from './pages/MenuHppPage';
+import { PettyCashPage } from './pages/PettyCashPage';
+import { FixedExpensesPage } from './pages/FixedExpensesPage';
+import { ProfitLossPage } from './pages/ProfitLossPage';
+import { BranchesPage } from './pages/BranchesPage';
+import { SubscriptionBillingPage } from './pages/SubscriptionBillingPage';
+import { WalletWithdrawalPage } from './pages/WalletWithdrawalPage';
+
+import { BottomNav } from './components/layout/BottomNav';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
+import { SubscriptionPaywallGuard } from './components/common/SubscriptionPaywallGuard';
+
+export const AppContent: React.FC = () => {
+  const { currentView, isAuthenticated, currentUser, billingStatus, setCurrentView } = useApp();
+
+  if (!isAuthenticated) {
+    return (
+      <>
+        <LoginPage />
+        <NotificationToast />
+      </>
+    );
+  }
+
+  const isSubscriptionActive = billingStatus?.isSubscriptionActive ?? true;
+  const isOperationalLocked = billingStatus !== null && !isSubscriptionActive;
+
+  const renderCurrentView = () => {
+    if (isOperationalLocked) {
+      const lockedViews = [
+        'transaksi-kasir-pos',
+        'sesi-shift-kasir',
+        'master-menu-dimsum-hpp',
+        'kas-kecil-outlet',
+        'beban-operasional-tetap',
+        'laporan-laba-rugi-arus-kas',
+        'dompet-penarikan-saldo',
+      ];
+      if (lockedViews.includes(currentView)) {
+        return (
+          <SubscriptionPaywallGuard
+            featureName={
+              currentView === 'transaksi-kasir-pos'
+                ? 'Kasir POS'
+                : currentView === 'master-menu-dimsum-hpp'
+                ? 'Master Menu & HPP'
+                : currentView === 'sesi-shift-kasir'
+                ? 'Sesi Shift Kasir'
+                : currentView === 'dompet-penarikan-saldo'
+                ? 'Dompet & Penarikan Saldo'
+                : 'Fitur Operasional & Keuangan'
+            }
+          />
+        );
+      }
+    }
+
+    const role = currentUser.role;
+    const ownerOnlyViews = [
+      'dompet-penarikan-saldo',
+      'langganan-billing',
+    ];
+    const financeAllowedViews = [
+      'beban-operasional-tetap',
+      'laporan-laba-rugi-arus-kas',
+    ];
+    const kasirAllowedViews = [
+      'transaksi-kasir-pos',
+      'sesi-shift-kasir',
+      'kas-kecil-outlet',
+    ];
+
+    if (role === 'KASIR' && !kasirAllowedViews.includes(currentView)) {
+      return <PosPage />;
+    }
+    if (role !== 'OWNER' && ownerOnlyViews.includes(currentView)) {
+      return <DashboardPage />;
+    }
+    if (role !== 'OWNER' && role !== 'AKUNTAN' && financeAllowedViews.includes(currentView)) {
+      return <DashboardPage />;
+    }
+    if (role === 'AKUNTAN' && (currentView === 'master-cabang-outlet' || currentView === 'master-menu-dimsum-hpp')) {
+      return <DashboardPage />;
+    }
+    if (role === 'INVENTORY' && (currentView === 'master-cabang-outlet' || currentView === 'kas-kecil-outlet')) {
+      return <DashboardPage />;
+    }
+    if (role !== 'KASIR' && currentView === 'transaksi-kasir-pos') {
+      return <DashboardPage />;
+    }
+
+    switch (currentView) {
+      case 'dashboard-utama':
+        return <DashboardPage />;
+      case 'master-cabang-outlet':
+        return <BranchesPage />;
+      case 'transaksi-kasir-pos':
+        return <PosPage />;
+      case 'sesi-shift-kasir':
+        return <ShiftPage />;
+      case 'master-menu-dimsum-hpp':
+        return <MenuHppPage />;
+      case 'kas-kecil-outlet':
+        return <PettyCashPage />;
+      case 'beban-operasional-tetap':
+        return <FixedExpensesPage />;
+      case 'laporan-laba-rugi-arus-kas':
+        return <ProfitLossPage />;
+      case 'langganan-billing':
+        return <SubscriptionBillingPage />;
+      case 'dompet-penarikan-saldo':
+        return <WalletWithdrawalPage />;
+      default:
+        return <DashboardPage />;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-surface-canvas text-on-surface antialiased flex">
+      {/* Fixed Left Navigation Sidebar */}
+      <Sidebar />
+
+      {/* Main Content Area */}
+      <div className="flex-1 pl-0 lg:pl-72 flex flex-col min-h-screen w-full overflow-x-hidden">
+        {/* Fixed Top Header */}
+        <Header />
+
+        {/* Unpaid / Expired Subscription Paywall Alert Strip */}
+        {isOperationalLocked && (
+          <div className="mt-16 bg-amber-500 text-amber-950 px-4 py-2.5 text-xs font-bold flex flex-wrap items-center justify-between gap-2 shadow-xs border-b border-amber-600/30 z-30">
+            <div className="flex items-center gap-2">
+              <span className="inline-block w-2 h-2 rounded-full bg-red-600 animate-pulse" />
+              <span>Paket Langganan Belum Aktif / Telah Kadaluarsa. Seluruh fitur operasional kasir terkunci.</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setCurrentView('langganan-billing')}
+              className="px-3 py-1 bg-brand-espresso text-white text-[11px] font-bold rounded-lg hover:bg-black transition-all cursor-pointer shadow-xs active:scale-95"
+            >
+              ⚡ Aktifkan Langganan Sekarang
+            </button>
+          </div>
+        )}
+
+        {/* Dynamic Page Workspace */}
+        <main className={`flex-1 ${isOperationalLocked ? 'pt-6' : 'pt-20'} px-3 sm:px-6 pb-32 lg:pb-12 w-full max-w-[1600px] mx-auto`}>
+          <ErrorBoundary>
+            {renderCurrentView()}
+          </ErrorBoundary>
+        </main>
+      </div>
+
+      {/* Persistent Bottom Navigation for Mobile & Tablet */}
+      <BottomNav />
+
+      {/* Floating System Toast Notifications */}
+      <NotificationToast />
+    </div>
+  );
+};
+
+export default function App() {
+  return (
+    <ErrorBoundary>
+      <AppContent />
+    </ErrorBoundary>
+  );
+}
+
